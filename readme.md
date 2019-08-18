@@ -2,6 +2,7 @@
 docker-compose up -d
 docker-compose exec --user=laradock workspace bash
 composer install
+cp .env.example .env
 ./artisan migrate
 ./artisan db:seed
 ./artisan user:create --help Создает пользователя
