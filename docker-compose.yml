@@ -1,0 +1,47 @@
+version: '3'
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  mysql:
+    driver: local
+
+services:
+    workspace:
+      build:
+        context: ./docker/workspace
+      volumes:
+        - ./:/var/www
+      tty: true
+      networks:
+        - backend
+
+    php-fpm:
+      build:
+        context: ./docker/php-fpm
+      volumes:
+        - ./docker/php-fpm/php7.3.ini:/usr/local/etc/php/php.ini
+        - ./:/var/www
+      expose:
+        - "9000"
+      depends_on:
+        - workspace
+      networks:
+        - backend
+
+    mysql:
+      image: mysql:5.7
+      restart: always
+      volumes:
+        - ./data/mysql:/var/lib/mysql
+      ports:
+        - "3306:3306"
+      environment:
+        - MYSQL_DATABASE=homestead
+        - MYSQL_USER=homestead
+        - MYSQL_PASSWORD=secret
+        - MYSQL_ROOT_PASSWORD=secret
+      networks:
+        - backend
