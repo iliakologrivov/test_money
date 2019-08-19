@@ -14,8 +14,7 @@ class MoneySend extends Command
      */
     protected $signature = 'money:send {--from= : Аккаунт отправителя}
                                         {--to= : Аккаунт получателя}
-                                        {--count= : Кол-во для списания}
-                                        {--sleep=}';
+                                        {--count= : Кол-во для списания}';
 
     /**
      * The console command description.

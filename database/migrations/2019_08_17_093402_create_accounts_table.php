@@ -18,7 +18,7 @@ class CreateAccountsTable extends Migration
 
             $table->unsignedBigInteger('user_id');
             $table->enum('type', ['sending', 'receiving']);
-            $table->enum('currency', ['USD', 'EUR', 'GBP', 'RON']);
+            $table->enum('currency', ['USD', 'EUR', 'GBP', 'RON', 'COP']);
             $table->double('balance')->default(0);
 
             $table->timestamps();

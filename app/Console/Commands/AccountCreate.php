@@ -15,7 +15,7 @@ class AccountCreate extends Command
      */
     protected $signature = 'account:create {--user_id= : ID пользователя}
                                             {--type= : Тип аккаунта (sending или receiving)}
-                                            {--currency= : Валюта аккаунта (USD, EUR, GBP, RON)}';
+                                            {--currency= : Валюта аккаунта (USD, EUR, GBP, RON, COP)}';
 
     /**
      * The console command description.

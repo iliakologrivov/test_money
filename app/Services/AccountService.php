@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helpers\AccountTypes;
 use App\Models\Account;
 use App\Models\User;
 use App\Repositories\AccountRepository;
@@ -60,32 +61,44 @@ class AccountService
 
     public function transaction($from, $to, $count)
     {
-        $fromAccount = $this->accountRepository->getLocked($from);
+        $function = function() use ($from, $to, $count) {
+            $fromAccount = $this->accountRepository->getLocked($from);
 
-        if ($fromAccount->type != $this->accountRepository::ACCOUNT_TYPE_SENDING) {
-            throw new \Exception('Неверный тип аккаунта списания!');
-        }
+            if ($fromAccount->type != AccountTypes::ACCOUNT_TYPE_SENDING) {
+                throw new \Exception('Неверный тип аккаунта списания!');
+            }
 
-        $toAccount = $this->accountRepository->getLocked($to);
+            $toAccount = $this->accountRepository->getLocked($to);
 
-        if ($toAccount->type != $this->accountRepository::ACCOUNT_TYPE_RECEIVING) {
-            throw new \Exception('Неверный тип аккаунта получения!');
-        }
+            if ($toAccount->type != AccountTypes::ACCOUNT_TYPE_RECEIVING) {
+                throw new \Exception('Неверный тип аккаунта получения!');
+            }
 
-        if ($count <= 0.0) {
-            throw new \Exception('Сумма меньше минимума!');
-        }
+            if ($count <= 0.0) {
+                throw new \Exception('Сумма меньше минимума!');
+            }
 
-        if (($fromAccount->balance - $count) < 0.0) {
-            throw new \Exception('Недостаточно средств!');
-        }
+            if (($fromAccount->balance - $count) < 0.0) {
+                throw new \Exception('Недостаточно средств!');
+            }
 
-        if ($fromAccount->currency == $toAccount->currency) {
-            return $this->accountRepository->transaction($fromAccount, $count, $toAccount, $count);
-        }
+            if ($fromAccount->currency == $toAccount->currency) {
+                $countTo = $count;
+            } else {
+                $countTo = $this->exchangeService->exchange($fromAccount->currency, $toAccount->currency, $count);
+            }
 
-        $countTo = $this->exchangeService->exchange($fromAccount->currency, $toAccount->currency, $count);
+            $resultDecrease = $this->accountRepository->decreaseBalanceForAccount($fromAccount, $count);
+            $resultIncrease = $this->accountRepository->increaseBalanceForAccount($toAccount, $countTo);
 
-        return $this->accountRepository->transaction($fromAccount, $count, $toAccount, $countTo);
+            if ($resultDecrease && $resultIncrease) {
+                return true;
+            }
+
+            return false;
+        };
+
+
+        return $this->accountRepository->transaction($function);
     }
 }
